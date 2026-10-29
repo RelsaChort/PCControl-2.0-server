@@ -1,10 +1,14 @@
+from pathlib import Path
+from datetime import datetime
+
 import win32api
 import win32con
+import win32gui
 
-        # 'shutdown',
-        # 'reboot',
-        # 'screenshot',
-        # 'minimize'
+from PIL import ImageGrab
+
+import ctypes
+
 class CommandManager:
     def __init__(self, command: str, args: dict) -> str:
         method_name = f"_command_{command}"
@@ -27,8 +31,20 @@ class CommandManager:
         )
 
     def _command_screenshot(self, args):
-        None
+        timestamp = datetime.now().strftime("%d %m %Y - %H %M %S")
+        path = self._screenshot_mkdir()
+        path = path / f"{timestamp}.png"
+
+        image = ImageGrab.grab()
+        image.save(path)
     
     def _command_minimize(self, args):
-        None
-    
+        ctypes.windll.user32.PostMessageW(
+            ctypes.windll.user32.GetDesktopWindow(), 0x0112, 0xF0E0, 0
+        )
+        
+    def _screenshot_mkdir(self):
+        main_dir = Path(__file__).resolve().parent
+        screenshot_dir = main_dir / "Screenshots"
+        screenshot_dir.mkdir(parents=True, exist_ok=True)
+        return screenshot_dir
